@@ -21,8 +21,6 @@ namespace ArchiveOutlookReplies
         Dictionary<MailItem, Outlook.ItemEvents_10_SendEventHandler> sendEvents = 
             new Dictionary<MailItem, ItemEvents_10_SendEventHandler>(); // stores Send event handlers for unsubscribing 
 
-        ProcessedMailItems List<MailItem> = List<MailItem>();
-
         // get MAPIFolder object for target folder (from ID if specified, otherwise get local Drafts folder)
         private MAPIFolder getTargetFolder() {
             Microsoft.Office.Interop.Outlook.NameSpace session = Application.Session;
