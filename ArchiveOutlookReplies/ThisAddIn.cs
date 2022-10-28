@@ -1,50 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Collections.Generic;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Office = Microsoft.Office.Core;
 using Microsoft.Office.Interop.Outlook;
 using System.Windows.Forms;
-using static System.Collections.Specialized.BitVector32;
 
 namespace ArchiveOutlookReplies
 {
     public partial class ThisAddIn
     {
-        readonly string sourceFolderID = "000000005DD9BCB153A2E847B2EA167045ADB2A50100B84A13FF84FE484EA1A67250243D94D80029AEA7113B0000"; // ID of folder from which replies will be copied. Copy the value that appear when you open a new explorer with that foldere. 
-        readonly string targetFolderID = null; // ID the folder to which messages will be copies. If null, the local Drafts folder will be used. 
+        string sourceFolderID = null; // ID of folder from which replies will be copied. Copy the value that appear when you open a new explorer with that foldere. 
+        //string targetFolderID = null; // ID the folder to which messages will be copies. If null, the local Drafts folder will be used. 
 
         Outlook.Explorers explorers;
         MAPIFolder targetFolder; // target folder to which messages will be copies. Default is the local Drafts folder.
         Dictionary<MailItem, Outlook.ItemEvents_10_SendEventHandler> sendEvents = 
             new Dictionary<MailItem, ItemEvents_10_SendEventHandler>(); // stores Send event handlers for unsubscribing 
 
-        // get MAPIFolder object for target folder (from ID if specified, otherwise get local Drafts folder)
-        private MAPIFolder getTargetFolder() {
-            Microsoft.Office.Interop.Outlook.NameSpace session = Application.Session;
-            if (targetFolderID == null)
-            {
-                return session.GetDefaultFolder(OlDefaultFolders.olFolderDrafts);
-            }
-            else
-                return session.GetFolderFromID(targetFolderID);
+        private void SelectFolders() {
+            MessageBox.Show("Select source folder first following by target folder");
+            sourceFolderID = Application.Session.PickFolder().EntryID;
+            targetFolder = Application.Session.PickFolder();
         }
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-            targetFolder = getTargetFolder();
+            SelectFolders();
             explorers = this.Application.Explorers;
-            setupNewExplorer(Application.ActiveExplorer()); // listen to active explorer
-            explorers.NewExplorer += setupNewExplorer; // listen to any new explorer created
+            SetupNewExplorer(Application.ActiveExplorer()); // listen to active explorer
+            explorers.NewExplorer += SetupNewExplorer; // listen to any new explorer created
             
         }
 
         // adds event listener for the reply event for each selected mail item if the explorer has the source folder as the active folder
-        private void setupNewExplorer(Explorer explorer)
+        private void SetupNewExplorer(Explorer explorer)
         {
-            MessageBox.Show("New explorer with FolderID:" + explorer.CurrentFolder.EntryID);
             explorer.SelectionChange += (() => {
                 if (explorer.CurrentFolder.EntryID==this.sourceFolderID)
                 {
